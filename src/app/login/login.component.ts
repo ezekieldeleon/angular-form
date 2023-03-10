@@ -7,11 +7,16 @@ import { NgForm } from "@angular/forms";
   styleUrls: ["./login.component.css"],
 })
 export class LoginComponent implements OnInit {
+  val = {
+    email: "ezekiel@email.com",
+    password: "122222",
+  };
   constructor() {}
 
   ngOnInit() {}
 
   login(loginForm: NgForm, submit) {
     console.log(loginForm.value, loginForm.valid, submit);
+    console.log("VAL:", this.val);
   }
 }
