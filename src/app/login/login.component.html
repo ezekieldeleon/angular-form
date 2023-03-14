@@ -1,5 +1,5 @@
 <mat-card class="login-page">
-  <mat-card-title>Login</mat-card-title>
+  <mat-card-title>Login(Template-Driven)</mat-card-title>
   <mat-card-content>
     <form
       class="login-form data-form"
@@ -13,7 +13,7 @@
           type="email"
           name="email"
           placeholder="Email"
-          [ngModel]="val.email"
+          ngModel
           #email="ngModel"
           required
           email
@@ -39,7 +39,7 @@
           matInput
           type="password"
           placeholder="Password"
-          ngModel="val.password"
+          ngModel
           name="password"
           #password="ngModel"
           required
