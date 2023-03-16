@@ -1,10 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  Validators,
-} from "@angular/forms";
+import { NonNullableFormBuilder, Validators } from "@angular/forms";
 import { createPasswordStrengthValidator } from "../validators/password-strength";
 
 @Component({
@@ -30,7 +25,21 @@ export class LoginReactiveComponent implements OnInit {
       ],
     ],
   });
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: NonNullableFormBuilder) {}
 
   ngOnInit() {}
+
+  get email() {
+    return this.form.controls["email"];
+  }
+  get password() {
+    return this.form.controls["password"];
+  }
+
+  login() {}
+
+  reset() {
+    this.form.reset();
+    console.log(this.form.value);
+  }
 }
