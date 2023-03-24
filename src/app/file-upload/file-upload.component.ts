@@ -6,6 +6,7 @@ import {
   ControlValueAccessor,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
+  ValidationErrors,
   Validator,
 } from "@angular/forms";
 import { noop, of } from "rxjs";
@@ -14,17 +15,97 @@ import { noop, of } from "rxjs";
   selector: "file-upload",
   templateUrl: "file-upload.component.html",
   styleUrls: ["file-upload.component.scss"],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      multi: true,
+      useExisting: FileUploadComponent,
+    },
+    {
+      provide: NG_VALIDATORS,
+      multi: true,
+      useExisting: FileUploadComponent,
+    },
+  ],
 })
-export class FileUploadComponent {
+export class FileUploadComponent implements ControlValueAccessor, Validator {
   @Input() requiredFileType: string;
 
   fileName: string = "";
+  fileUploadError = false;
+  fileUploadSuccess = false;
+  uploadProgress: number;
+  onChange: Function = (fileName: string) => {};
+  onTouch: Function = () => {};
+  onValidatorChange = () => {};
+  disabled: boolean = false;
+
+  constructor(private http: HttpClient) {}
+  validate(control: AbstractControl<any, any>): ValidationErrors {
+    if (this.fileUploadSuccess) {
+      return null;
+    }
+    let errors: any = {
+      requiredFileType: this.requiredFileType,
+    };
+    if (this.fileUploadError) {
+      errors.uploadFailed = true;
+    }
+    return errors;
+  }
+  registerOnValidatorChange?(onValidatorChange: () => void): void {
+    this.onValidatorChange = onValidatorChange;
+  }
+  writeValue(value: any): void {
+    this.fileName = value;
+  }
+  registerOnChange(onChange: any): void {
+    this.onChange = onChange;
+  }
+  registerOnTouched(onTouch: any): void {
+    this.onTouch = onTouch;
+  }
+  setDisabledState?(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+  }
 
   onFileSelected(event) {
     const file: File = event.target.files[0];
     if (file) {
       this.fileName = file.name;
-      console.log(this.fileName);
+      const formData = new FormData();
+      formData.append("thumbnail", file);
+      this.fileUploadError = false;
+      this.http
+        .post("/api/thumbnail-upload", formData, {
+          reportProgress: true,
+          observe: "events",
+        })
+        .pipe(
+          catchError((error) => {
+            this.fileUploadError = true;
+            return of(error);
+          }),
+          finalize(() => {
+            this.uploadProgress = null;
+          })
+        )
+        .subscribe((event) => {
+          if (event.type === HttpEventType.UploadProgress) {
+            this.uploadProgress = Math.round(
+              100 * (event.loaded / event.total)
+            );
+          } else if (event.type === HttpEventType.Response) {
+            this.fileUploadSuccess = true;
+            this.onChange(this.fileName);
+            this.onValidatorChange();
+          }
+        });
     }
+  }
+
+  onClick(fileUpload: HTMLInputElement) {
+    this.onTouch();
+    fileUpload.click();
   }
 }
