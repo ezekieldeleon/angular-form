@@ -17,4 +17,14 @@ import { noop, of } from "rxjs";
 })
 export class FileUploadComponent {
   @Input() requiredFileType: string;
+
+  fileName: string = "";
+
+  onFileSelected(event) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.fileName = file.name;
+      console.log(this.fileName);
+    }
+  }
 }
